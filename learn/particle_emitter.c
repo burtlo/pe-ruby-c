@@ -91,6 +91,8 @@ VALUE particleEmitter_optimize(VALUE self) {
   // emitter->texture->maxS
   // emitter->texture->maxT
 
+  printf("MAXS MAXT %f,%f",emitter->texture->maxS,emitter->texture->maxT);
+
   GLfloat maxS = 1.0f;
   GLfloat maxT = 1.0f;
 
@@ -150,14 +152,13 @@ void particleEmitter_parseParticleConfig(VALUE self) {
   // VALUE rbImageBlobData = rb_funcall(config,rb_intern("image_data"),0);
   // char *textureBlobData = StringValuePtr( rbImageBlobData );
   // emitter->texture = Texture2D_createWithBlob(textureBlobData);
-  // 
+  //
   VALUE rbImageFileName = rb_funcall(config,rb_intern("image_path"),0);
     char *imageFileName = StringValueCStr( rbImageFileName );
-    
+
   printf("Loading Texture For: %s",imageFileName);
-  
+
   emitter->texture = Texture2D_createWithFile( imageFileName );
-  
 
   emitter->emitterType = FIX2INT( rb_funcall(config,rb_intern("x"),0) );
 
@@ -241,6 +242,8 @@ void particleEmitter_parseParticleConfig(VALUE self) {
 
 VALUE particleEmitter_updateWithDelta(VALUE self) {
   EMITTER();
+  
+  printf("Updating");
 
   float aDelta = 0.08f;
 
@@ -431,8 +434,9 @@ void particleEmitter_addParticle(VALUE self) {
 }
 
 void particleEmitter_renderParticles(VALUE self) {
-
   EMITTER();
+
+  printf("\nRendering %d",emitter->verticesID);
 
   // Bind to the verticesID VBO and popuate it with the necessary vertex, color and texture informaiton
   glBindBuffer(GL_ARRAY_BUFFER, emitter->verticesID);

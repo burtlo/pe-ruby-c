@@ -281,15 +281,22 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texture->width, texture->height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
         break;
     }
+    
+    printf("The content Size is (%f,%f)",texture->contentSize.width,texture->contentSize.height);
+    printf("The content Size is (%f,%f)",texture->width,texture->height);
 
     texture->maxS = texture->contentSize.width / (float)texture->width;
     texture->maxT = texture->contentSize.height / (float)texture->height;
+
+    printf("The MaxS,MaxT Size is (%f,%f)",texture->maxS,texture->maxT);
 
     texture->textureRatio.width = 1.0f / (float)texture->width;
     texture->textureRatio.height = 1.0f / (float)texture->height;
 
     CGContextRelease(context);
     free(data);
+    
+    return texture;
 
 }
 

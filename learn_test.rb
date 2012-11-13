@@ -133,8 +133,28 @@ class ParticleFile
 end
 
 
+class TestWindow < Gosu::Window
+  
+  def emitter
+    @emitter ||= begin
+      pe = Learn::ParticleEmitter.new(self,"purple.pex")
+      pe.optimize
+      pe
+    end
+  end
+  
+  
+  def update
+    emitter.update
+  end
+  
+  def draw
+    emitter.render_particles
+  end
+  
+end
 
-window = Gosu::Window.new(200,200,false)
+window = TestWindow.new(600,600,false)
 
 class Learn::ParticleEmitter
 
@@ -155,12 +175,13 @@ class Learn::ParticleEmitter
 
 end
 
-pe = Learn::ParticleEmitter.new(window,"purple.pex")
-puts "Emitter Ready: #{pe.active?}"
-pe.optimize
-puts "Emitter Ready: #{pe.active?}"
-puts "Source Position: #{pe.source_position}"
+# pe = Learn::ParticleEmitter.new(window,"purple.pex")
+# puts "Emitter Ready: #{pe.active?}"
+# # pe.optimize
+# puts "Emitter Ready: #{pe.active?}"
+# puts "Source Position: #{pe.source_position}"
 
+window.show
 
 puts ("---" * 30)
 puts "Learning Is Great!"
