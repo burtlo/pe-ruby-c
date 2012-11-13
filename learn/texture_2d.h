@@ -1,4 +1,5 @@
 #import "global.h"
+#include "Glee.h"
 
 typedef enum {
   kTexture2DPixelFormat_Automatic = 0,
@@ -20,32 +21,4 @@ typedef struct texture_2d {
 
 } Texture2D;
 
-void Init_Texture2D(VALUE module);
-Texture2D* Texture2D_createWithBlob(char *textureBlob);
 Texture2D* Texture2D_createWithFile(char *textureFileName);
-
-VALUE Texture2D_initialize(VALUE self, VALUE image);
-
-VALUE Texture2D_get_name(VALUE self);
-VALUE Texture2D_get_contentSize(VALUE self);
-VALUE Texture2D_get_width(VALUE self);
-VALUE Texture2D_get_height(VALUE self);
-VALUE Texture2D_get_maxS(VALUE self);
-VALUE Texture2D_get_maxT(VALUE self);
-VALUE Texture2D_get_textureRatio(VALUE self);
-VALUE Texture2D_get_pixelFormat(VALUE self);
-
-
-#define TEXTURE2D() \
-    Texture2D* texture2D; \
-    Data_Get_Struct(self, Texture2D, texture2D);
-
-
-#define GET_TEXTURE2D_DATA(ATTRIBUTE_NAME, ATTRIBUTE, CAST) \
-    VALUE Texture2D_get_##ATTRIBUTE_NAME(VALUE self) \
-    { \
-      TEXTURE2D(); \
-      return CAST(texture2D->ATTRIBUTE); \
-    }
-
-

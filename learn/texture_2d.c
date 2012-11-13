@@ -1,141 +1,4 @@
 #include "texture_2d.h"
-#include "Glee.h"
-
-// #pragma mark - Prototypes
-
-static VALUE texture2d_allocate(VALUE klass);
-static void texture2D_mark(Texture2D* texture2D);
-static void texture2D_free(Texture2D* texture2D);
-
-// #pragma mark - Initialization
-
-void Init_Texture2D(VALUE module) {
-
-  VALUE cTexture2D = rb_define_class_under(module,"Texture2D",rb_cObject);
-
-  rb_define_alloc_func(cTexture2D, texture2d_allocate);
-  rb_define_method(cTexture2D, "initialize", Texture2D_initialize, 1);
-  rb_define_method(cTexture2D, "name", Texture2D_get_name, 0);
-  rb_define_method(cTexture2D, "size", Texture2D_get_contentSize, 0);
-  rb_define_method(cTexture2D, "width", Texture2D_get_width, 0);
-  rb_define_method(cTexture2D, "height", Texture2D_get_height, 0);
-  rb_define_method(cTexture2D, "max_s", Texture2D_get_maxS, 0);
-  rb_define_method(cTexture2D, "max_t", Texture2D_get_maxT, 0);
-  rb_define_method(cTexture2D, "ratio", Texture2D_get_textureRatio, 0);
-  rb_define_method(cTexture2D, "format", Texture2D_get_pixelFormat, 0);
-}
-
-// #pragma - Initialize
-
-VALUE Texture2D_initialize(VALUE self, VALUE image) {
-  TEXTURE2D();
-
-  if(!GL_EXT_framebuffer_object)
-  {
-     rb_raise(rb_eRuntimeError, "Ashton::Texture requires GL_EXT_framebuffer_object, which is not supported by OpenGL");
-  }
-
-  glGenTextures(1, &texture2D->name);
-  glBindTexture(GL_TEXTURE_2D, texture2D->name);
-
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  // MAG_FILTER set on each draw
-  // GL_LINEAR is usually set in the ParticleEmitter codebase
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  char* data;
-  if(NIL_P(image))
-  {
-     data = NULL; // Create an empty texture, that might be filled with junk.
-  }
-  else
-  {
-     data = StringValuePtr(image); // Create from blob data.
-  }
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture2D->width,
-                      texture2D->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-  GLint created_width;
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &created_width);
-  if(created_width == 0) {
-    rb_raise(rb_eArgError, "Unable to create a texture of size %dx%d",
-             texture2D->width, texture2D->height);
-  }
-
-
-
-  return self;
-}
-
-// #pragma - Allocation
-
-static VALUE texture2d_allocate(VALUE klass) {
-    Texture2D* texture2D = ALLOC(Texture2D);
-    memset(texture2D, 0, sizeof(Texture2D));
-
-    // return Data_Wrap_Struct(klass, texture2D_mark, texture2D_free, texture2D);
-    return Data_Wrap_Struct(klass, 0, texture2D_free, texture2D);
-}
-
-static void texture2D_mark(Texture2D* texture2D) {
-    // if(!NIL_P(texture2D->rb_shader)) rb_gc_mark(texture2D->rb_shader);
-    // rb_gc_mark(texture2D->rb_image);
-}
-
-// Deallocate data structure and its contents.
-static void texture2D_free(Texture2D* texture2D) {
-    // glDeleteBuffersARB(1, &texture2D->vbo_id);
-    // xfree(texture2D->color_array);
-    // xfree(texture2D->texture_coords_array);
-    // xfree(texture2D->vertex_array);
-    //
-    // xfree(texture2D->particles);
-    xfree(texture2D);
-}
-
-// #pragma mark - Getters
-
-GET_TEXTURE2D_DATA(name, name, UINT2NUM);
-GET_TEXTURE2D_DATA(width, width, UINT2NUM);
-GET_TEXTURE2D_DATA(height, height, UINT2NUM);
-GET_TEXTURE2D_DATA(maxS, maxS, rb_float_new);
-GET_TEXTURE2D_DATA(maxT, maxT, rb_float_new);
-
-
-VALUE Texture2D_get_textureRatio(VALUE self) {
-  TEXTURE2D();
-
-  VALUE ratioArray = rb_ary_new();
-
-  rb_ary_push(ratioArray, INT2FIX(texture2D->textureRatio.width));
-  rb_ary_push(ratioArray, INT2FIX(texture2D->textureRatio.height));
-
-  return ratioArray;
-}
-
-
-VALUE Texture2D_get_contentSize(VALUE self) {
-  TEXTURE2D();
-
-  VALUE sizeArray = rb_ary_new();
-
-  rb_ary_push(sizeArray, INT2FIX(texture2D->contentSize.width));
-  rb_ary_push(sizeArray, INT2FIX(texture2D->contentSize.height));
-
-  return sizeArray;
-}
-
-
-VALUE Texture2D_get_pixelFormat(VALUE self) {
-  TEXTURE2D();
-
-  char *formats [4] = { "automatic", "rgba888", "rgb565", "ab" };
-  char *format = formats[texture2D->pixelFormat];
-
-  return rb_str_new2(format);
-}
 
 Texture2D* Texture2D_createWithFile(char *textureFileName) {
 
@@ -205,7 +68,7 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
   CGContextRef context = NULL;
   GLvoid* data = NULL;
 
-  printf("%f %f",texture->width,texture->height);
+  printf("%i %i",texture->width,texture->height);
 
   switch(texture->pixelFormat) {
     case kTexture2DPixelFormat_RGBA8888:
@@ -232,17 +95,8 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
       data = malloc(texture->height * texture->width);
 
       context = CGBitmapContextCreate(data, texture->width, texture->height, 8, texture->width, NULL, kCGImageAlphaOnly);
-      printf("%s",data);
-      printf("%s",context);
       break;
     }
-
-    // Generates an ERROR when used:
-    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextSaveGState: invalid context 0x0
-    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextSetCompositeOperation: invalid context 0x0
-    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextFillRects: invalid context 0x0
-    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextRestoreGState: invalid context 0x0
-    // if (context == NULL) { return; }
 
     CGContextClearRect(context, CGRectMake(0, 0, texture->width, texture->height));
     CGContextTranslateCTM(context, 0, texture->height - texture->contentSize.height);
@@ -271,20 +125,24 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, aFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, aFilter);
 
+    printf("\nTexture (Width,Height) (%d,%d)",texture->width,texture->height);
+
     switch(texture->pixelFormat) {
       case kTexture2DPixelFormat_RGBA8888:
+        printf("\nkTexture2DPixelFormat_RGBA8888");
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         break;
       case kTexture2DPixelFormat_RGB565:
+        printf("\nkTexture2DPixelFormat_RGB565");
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->width, texture->height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, data);
         break;
       case kTexture2DPixelFormat_A8:
+        printf("\nkTexture2DPixelFormat_A8");
         glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texture->width, texture->height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
         break;
+      default:
+        printf("\nCould not generate the texture");
     }
-
-    printf("The content Size is (%f,%f)",texture->contentSize.width,texture->contentSize.height);
-    printf("The content Size is (%f,%f)",texture->width,texture->height);
 
     texture->maxS = texture->contentSize.width / (float)texture->width;
     texture->maxT = texture->contentSize.height / (float)texture->height;
@@ -298,9 +156,5 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
     free(data);
 
     return texture;
-
-}
-
-Texture2D* Texture2D_createWithBlob(char *textureBlob) {
 
 }

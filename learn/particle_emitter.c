@@ -425,6 +425,8 @@ void particleEmitter_addParticle(VALUE self) {
 VALUE particleEmitter_renderParticles(VALUE self) {
   EMITTER();
 
+  // glEnable(GL_BLEND);
+  // glEnable(GL_TEXTURE_2D);
 
   // Bind to the verticesID VBO and popuate it with the necessary vertex, color and texture informaiton
   glBindBuffer(GL_ARRAY_BUFFER, emitter->verticesID);

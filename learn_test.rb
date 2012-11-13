@@ -12,21 +12,6 @@ class ParticleColor
   attribute :green, Float
   attribute :blue, Float
   attribute :alpha, Float
-
-  def color
-    Gosu::Color.new alpha, red, green, blue
-  end
-
-end
-
-Vector2f = Struct.new(:x,:y)
-
-class Texture2D
-
-  def initialize(magick_image)
-    @magick_image = magick_image
-  end
-
 end
 
 class ParticleFile
@@ -39,26 +24,6 @@ class ParticleFile
   has_one :image_path, String, xpath: "texture/@name"
 
   has_one :image_data, String, xpath: "texture/@data"
-
-  def image
-    @image ||= Gosu::Image.new(window,image_path,false)
-  end
-
-  def image_data
-    Magick::Image.read(image_path).first.to_blob
-  end
-
-  def texture
-    @texture ||= Texture2D.new(Magick::Image.read(image_path).first)
-  end
-
-  def source_position
-    Vector2f.new x, y
-  end
-
-  def source_position_var
-    Vector2f.new x_var, y_var
-  end
 
   has_one :x, Float, xpath: "sourcePosition/@x"
   has_one :y, Float, xpath: "sourcePosition/@y"
@@ -73,10 +38,6 @@ class ParticleFile
 
   has_one :angle, Float, xpath: "angle/@value"
   has_one :angle_var, Float, xpath: "angleVariance/@value"
-
-  def gravity
-    Vector2f.new gravity_x, gravity_y
-  end
 
   has_one :gravity_x, Float, xpath: "gravity/@x"
   has_one :gravity_y, Float, xpath: "gravity/@y"
@@ -177,14 +138,6 @@ end
 
 window = TestWindow.new(600,600,false)
 window.show
-
-# pe = Learn::ParticleEmitter.new(window,"purple.pex")
-# puts "Emitter Ready: #{pe.active?}"
-# # pe.optimize
-# puts "Emitter Ready: #{pe.active?}"
-# puts "Source Position: #{pe.source_position}"
-
-
 
 puts ("---" * 30)
 puts "Learning Is Great!"
