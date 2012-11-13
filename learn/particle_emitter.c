@@ -3,12 +3,9 @@
 #pragma mark - Protoypes
 
 static VALUE particleEmitter_allocate(VALUE klass);
-// static void particleEmitter_mark(ParticleEmitter *emitter);
 static void particleEmitter_free(ParticleEmitter *emitter);
 
 VALUE particleEmitter_init(VALUE self);
-VALUE particleEmitter_active(VALUE self);
-VALUE particleEmitter_get_sourcePosition(VALUE self);
 
 VALUE particleEmitter_optimize(VALUE self);
 VALUE particleEmitter_updateWithDelta(VALUE self,VALUE rbDelta);
@@ -29,9 +26,6 @@ void Init_ParticleEmitter(VALUE module) {
   rb_define_alloc_func(cParticleEmitter, particleEmitter_allocate);
   rb_define_method(cParticleEmitter, "initialize", particleEmitter_init, 0);
 
-  rb_define_method(cParticleEmitter, "active?", particleEmitter_active, 0);
-  rb_define_method(cParticleEmitter, "source_position", particleEmitter_get_sourcePosition, 0);
-
   rb_define_method(cParticleEmitter, "optimize", particleEmitter_optimize, 0);
   rb_define_method(cParticleEmitter, "update", particleEmitter_updateWithDelta, 1);
   rb_define_method(cParticleEmitter, "render_particles", particleEmitter_renderParticles, 0);
@@ -47,20 +41,9 @@ static VALUE particleEmitter_allocate(VALUE klass) {
     return Data_Wrap_Struct(klass, 0, particleEmitter_free, emitter);
 }
 
-// static void particleEmitter_mark(ParticleEmitter *emitter) {
-//     // if(!NIL_P(texture2D->rb_shader)) rb_gc_mark(texture2D->rb_shader);
-//     // rb_gc_mark(texture2D->rb_image);
-// }
-
 // Deallocate data structure and its contents.
 static void particleEmitter_free(ParticleEmitter *emitter) {
-    // glDeleteBuffersARB(1, &texture2D->vbo_id);
-    // xfree(texture2D->color_array);
-    // xfree(texture2D->texture_coords_array);
-    // xfree(texture2D->vertex_array);
-    //
-    // xfree(texture2D->particles);
-    xfree(emitter);
+  xfree(emitter);
 }
 
 

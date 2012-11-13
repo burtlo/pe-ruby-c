@@ -8,8 +8,8 @@
 
 // Particle type
 enum kParticleTypes {
- kParticleTypeGravity,
- kParticleTypeRadial
+  kParticleTypeGravity,
+  kParticleTypeRadial
 };
 
 typedef struct _particle_emitter {
