@@ -87,14 +87,10 @@ VALUE particleEmitter_optimize(VALUE self) {
 
   int maxParticles = emitter->maxParticles;
 
-  //TODO: Get the maxS and maxT from the texture:
-  // emitter->texture->maxS
-  // emitter->texture->maxT
+  printf("\n MaxParticles, (MAXS,MAXT) %d, (%f,%f)",maxParticles, emitter->texture->maxS,emitter->texture->maxT);
 
-  printf("MAXS MAXT %f,%f",emitter->texture->maxS,emitter->texture->maxT);
-
-  GLfloat maxS = 1.0f;
-  GLfloat maxT = 1.0f;
+  GLfloat maxS = emitter->texture->maxS;
+  GLfloat maxT = emitter->texture->maxT;
 
   // Allocate the memory necessary for the particle emitter arrays
   emitter->particles = malloc( sizeof(Particle) * maxParticles );
@@ -147,12 +143,10 @@ void particleEmitter_parseParticleConfig(VALUE self) {
 
   VALUE config = rb_funcall(self,rb_intern("ped"),0);
 
-  // TODO: Get and Set the texture on the particle emitter
-
   // VALUE rbImageBlobData = rb_funcall(config,rb_intern("image_data"),0);
   // char *textureBlobData = StringValuePtr( rbImageBlobData );
   // emitter->texture = Texture2D_createWithBlob(textureBlobData);
-  //
+
   VALUE rbImageFileName = rb_funcall(config,rb_intern("image_path"),0);
     char *imageFileName = StringValueCStr( rbImageFileName );
 
@@ -242,8 +236,8 @@ void particleEmitter_parseParticleConfig(VALUE self) {
 
 VALUE particleEmitter_updateWithDelta(VALUE self) {
   EMITTER();
-  
-  printf("\nUpdating");
+
+  // printf("\nUpdating");
 
   float aDelta = 16.666666f;
 
@@ -282,13 +276,12 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
 
     // If the current particle is alive then update it
     if(currentParticle->timeToLive > 0) {
-
       // If maxRadius is greater than 0 then the particles are going to spin otherwise
       // they are effected by speed and gravity
       if (emitter->emitterType == kParticleTypeRadial) {
 
-                // FIX 2
-                // Update the angle of the particle from the sourcePosition and the radius.  This is only
+        // FIX 2
+        // Update the angle of the particle from the sourcePosition and the radius.  This is only
         // done of the particles are rotating
         currentParticle->angle += currentParticle->degreesPerSecond * aDelta;
         currentParticle->radius -= currentParticle->radiusDelta;
@@ -301,6 +294,7 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
         if (currentParticle->radius < emitter->minRadius)
           currentParticle->timeToLive = 0;
       } else {
+
         Vector2f tmp, radial, tangential;
 
         radial = Vector2fZero;
@@ -327,6 +321,7 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
         tmp = Vector2fMultiply(currentParticle->direction, aDelta);
         currentParticle->position = Vector2fAdd(currentParticle->position, tmp);
         currentParticle->position = Vector2fAdd(currentParticle->position, diff);
+
       }
 
       // Update the particles color
@@ -343,7 +338,7 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
 
       // As we are rendering the particles as quads, we need to define 6 vertices for each particle
       GLfloat halfSize = currentParticle->particleSize * 0.5f;
-
+      
       // If a rotation has been defined for this particle then apply the rotation to the vertices that define
       // the particle
       if (currentParticle->rotation) {
@@ -414,14 +409,14 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
       emitter->particleCount = particleIndex--;
     }
   }
-
-
+  
+  return Qnil;
 }
 
 void particleEmitter_addParticle(VALUE self) {
   EMITTER();
 
-  if (emitter->particleCount < emitter->maxParticles) {
+  if (emitter->particleCount == emitter->maxParticles) {
     return;
   }
 
@@ -463,11 +458,11 @@ VALUE particleEmitter_renderParticles(VALUE self) {
 
   // Unbind the current VBO
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  printf("\nRendering %d",emitter->verticesID);
+  // printf("\nRendering %d",emitter->verticesID);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  printf("\nTexture Name: %d",emitter->texture->name);
-  
+  // printf("\nTexture Name: %d",emitter->texture->name);
+
   return Qnil;
 }
 
@@ -570,6 +565,3 @@ VALUE particleEmitter_get_sourcePosition(VALUE self) {
 
   return rb_float_new(emitter->sourcePosition.x);
 }
-
-
-// GET_EMITTER_DATA(sourcePosition,sourcePosition,NUM2DBL)
