@@ -1,10 +1,10 @@
 #import "global.h"
 
+#import "texture_2d.h"
 #import "point_sprite.h"
 #import "textured_colored_vertex.h"
 #import "particle_quad.h"
 #import "particle.h"
-#import "texture_2d.h"
 
 // Particle type
 enum kParticleTypes {

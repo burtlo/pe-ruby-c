@@ -1,1 +1,1 @@
-cd learn && ruby extconf.rb && make && cd .. && ruby learn_test.rb
+cd learn && ruby extconf.rb && make

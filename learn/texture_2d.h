@@ -21,9 +21,8 @@ typedef struct texture_2d {
 } Texture2D;
 
 void Init_Texture2D(VALUE module);
-Texture2D Texture2D_createWithBlob(char *textureBlob);
-Texture2D Texture2D_createWithFile(char *textureFileName);
-
+Texture2D* Texture2D_createWithBlob(char *textureBlob);
+Texture2D* Texture2D_createWithFile(char *textureFileName);
 
 VALUE Texture2D_initialize(VALUE self, VALUE image);
 

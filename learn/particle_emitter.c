@@ -150,12 +150,14 @@ void particleEmitter_parseParticleConfig(VALUE self) {
   // VALUE rbImageBlobData = rb_funcall(config,rb_intern("image_data"),0);
   // char *textureBlobData = StringValuePtr( rbImageBlobData );
   // emitter->texture = Texture2D_createWithBlob(textureBlobData);
-  
+  // 
   VALUE rbImageFileName = rb_funcall(config,rb_intern("image_path"),0);
-  char *imageFileName = StringValuePtr( rbImageFileName );
+    char *imageFileName = StringValueCStr( rbImageFileName );
+    
+  printf("Loading Texture For: %s",imageFileName);
   
   emitter->texture = Texture2D_createWithFile( imageFileName );
-
+  
 
   emitter->emitterType = FIX2INT( rb_funcall(config,rb_intern("x"),0) );
 
@@ -537,7 +539,6 @@ void particleEmitter_initParticle(VALUE self,Particle* particle) {
   GLfloat endA = emitter->rotationEnd + emitter->rotationEndVariance * RANDOM_MINUS_1_TO_1();
   particle->rotation = startA;
   particle->rotationDelta = (endA - startA) / particle->timeToLive;
-
 
 }
 

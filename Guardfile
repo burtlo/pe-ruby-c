@@ -7,7 +7,9 @@ guard 'shell' do
     
     puts "#{file} has changed"
     if file !~ /^(extconf\.h|Makefile|mkmf\.log)$/
-      `./build.sh`
+      puts `./clean.sh`
+      puts `./build.sh`
+      puts `ruby learn_test.rb`
     end
   end
 

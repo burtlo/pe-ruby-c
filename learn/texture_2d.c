@@ -137,12 +137,15 @@ VALUE Texture2D_get_pixelFormat(VALUE self) {
   return rb_str_new2(format);
 }
 
-Texture2D Texture2D_createWithFile(char *textureFileName) {
+Texture2D* Texture2D_createWithFile(char *textureFileName) {
 
+  printf("Texture Creation For: %s",textureFileName);
   CGDataProviderRef dataProvider = CGDataProviderCreateWithFilename(textureFileName);
   CGImageRef image = CGImageCreateWithPNGDataProvider(dataProvider, NULL, 0, kCGRenderingIntentDefault);
 
   Texture2D *texture = malloc(sizeof(Texture2D));
+
+  // printf("Image Data: %s",image);
 
   CGImageAlphaInfo info = CGImageGetAlphaInfo(image);
   BOOL hasAlpha = ((info == kCGImageAlphaPremultipliedLast) ||
@@ -162,6 +165,8 @@ Texture2D Texture2D_createWithFile(char *textureFileName) {
   }
 
   texture->contentSize = CGSizeMake(CGImageGetWidth(image), CGImageGetHeight(image));
+
+  printf("%f,%f",texture->contentSize.width,texture->contentSize.height);
 
   GLuint pot = 0;
 
@@ -200,15 +205,21 @@ Texture2D Texture2D_createWithFile(char *textureFileName) {
   CGContextRef context = NULL;
   GLvoid* data = NULL;
 
+  printf("%f %f",texture->width,texture->height);
+
   switch(texture->pixelFormat) {
     case kTexture2DPixelFormat_RGBA8888:
       colorSpace = CGColorSpaceCreateDeviceRGB();
       data = malloc(texture->height * texture->width * 4);
+      printf("kTexture2DPixelFormat_RGBA8888");
+
       context = CGBitmapContextCreate(data, texture->width, texture->height, 8, 4 * texture->width, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
       CGColorSpaceRelease(colorSpace);
       break;
 
     case kTexture2DPixelFormat_RGB565:
+      printf("kTexture2DPixelFormat_RGB565");
+
       colorSpace = CGColorSpaceCreateDeviceRGB();
       data = malloc(texture->height * texture->width * 4);
       context = CGBitmapContextCreate(data, texture->width, texture->height, 8, 4 * texture->width, colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
@@ -216,31 +227,72 @@ Texture2D Texture2D_createWithFile(char *textureFileName) {
       break;
 
     case kTexture2DPixelFormat_A8:
+      printf("kTexture2DPixelFormat_A8");
+
       data = malloc(texture->height * texture->width);
+
       context = CGBitmapContextCreate(data, texture->width, texture->height, 8, texture->width, NULL, kCGImageAlphaOnly);
+      printf("%s",data);
+      printf("%s",context);
       break;
     }
 
+    // Generates an ERROR when used:
+    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextSaveGState: invalid context 0x0
+    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextSetCompositeOperation: invalid context 0x0
+    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextFillRects: invalid context 0x0
+    // Nov 12 18:20:55 Pod.local ruby[78738] <Error>: CGContextRestoreGState: invalid context 0x0
+    // if (context == NULL) { return; }
+
     CGContextClearRect(context, CGRectMake(0, 0, texture->width, texture->height));
-    // CGContextTranslateCTM(context, 0, texture->height - texture->contentSize.height);
+    CGContextTranslateCTM(context, 0, texture->height - texture->contentSize.height);
 
-    // if(!CGAffineTransformIsIdentity(transform))
-    //     CGContextConcatCTM(context, transform);
+    if(!CGAffineTransformIsIdentity(transform))
+        CGContextConcatCTM(context, transform);
 
-    // CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
-    // 
-    // if(texture->pixelFormat == kTexture2DPixelFormat_RGB565) {
-    //   void* tempData = malloc(texture->height * texture->width * 2);
-    //   unsigned int *inPixel32 = (unsigned int*)data;
-    //   unsigned short *outPixel16 = (unsigned short*)tempData;
-    //   for(int i = 0; i < texture->width * texture->height; ++i, ++inPixel32)
-    //       *outPixel16++ = ((((*inPixel32 >> 0) & 0xFF) >> 3) << 11) | ((((*inPixel32 >> 8) & 0xFF) >> 2) << 5) |  ((((*inPixel32 >> 16) & 0xFF) >> 3) << 0);
-    //   free(data);
-    //   data = tempData;
-    // }
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
+
+    if(texture->pixelFormat == kTexture2DPixelFormat_RGB565) {
+      void* tempData = malloc(texture->height * texture->width * 2);
+      unsigned int *inPixel32 = (unsigned int*)data;
+      unsigned short *outPixel16 = (unsigned short*)tempData;
+      for(int i = 0; i < texture->width * texture->height; ++i, ++inPixel32)
+          *outPixel16++ = ((((*inPixel32 >> 0) & 0xFF) >> 3) << 11) | ((((*inPixel32 >> 8) & 0xFF) >> 2) << 5) |  ((((*inPixel32 >> 16) & 0xFF) >> 3) << 0);
+      free(data);
+      data = tempData;
+    }
+
+    glGenTextures(1, &texture->name);
+    glBindTexture(GL_TEXTURE_2D, texture->name);
+
+    GLenum aFilter = GL_LINEAR;
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, aFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, aFilter);
+
+    switch(texture->pixelFormat) {
+      case kTexture2DPixelFormat_RGBA8888:
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        break;
+      case kTexture2DPixelFormat_RGB565:
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->width, texture->height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, data);
+        break;
+      case kTexture2DPixelFormat_A8:
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texture->width, texture->height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
+        break;
+    }
+
+    texture->maxS = texture->contentSize.width / (float)texture->width;
+    texture->maxT = texture->contentSize.height / (float)texture->height;
+
+    texture->textureRatio.width = 1.0f / (float)texture->width;
+    texture->textureRatio.height = 1.0f / (float)texture->height;
+
+    CGContextRelease(context);
+    free(data);
 
 }
 
-Texture2D Texture2D_createWithBlob(char *textureBlob) {
+Texture2D* Texture2D_createWithBlob(char *textureBlob) {
 
 }
