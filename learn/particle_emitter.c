@@ -19,7 +19,7 @@ void particleEmitter_parseParticleConfig(VALUE self);
 void particleEmitter_addParticle(VALUE self);
 void particleEmitter_stopParticleEmitter(VALUE self);
 void particleEmitter_initParticle(VALUE self,Particle *particle);
-void particleEmitter_renderParticles(VALUE self);
+VALUE particleEmitter_renderParticles(VALUE self);
 
 #pragma mark - Init
 
@@ -243,9 +243,9 @@ void particleEmitter_parseParticleConfig(VALUE self) {
 VALUE particleEmitter_updateWithDelta(VALUE self) {
   EMITTER();
   
-  printf("Updating");
+  printf("\nUpdating");
 
-  float aDelta = 0.08f;
+  float aDelta = 16.666666f;
 
   if(emitter->active && emitter->emissionRate) {
     float rate = 1.0f/emitter->emissionRate;
@@ -433,10 +433,9 @@ void particleEmitter_addParticle(VALUE self) {
 
 }
 
-void particleEmitter_renderParticles(VALUE self) {
+VALUE particleEmitter_renderParticles(VALUE self) {
   EMITTER();
 
-  printf("\nRendering %d",emitter->verticesID);
 
   // Bind to the verticesID VBO and popuate it with the necessary vertex, color and texture informaiton
   glBindBuffer(GL_ARRAY_BUFFER, emitter->verticesID);
@@ -451,6 +450,7 @@ void particleEmitter_renderParticles(VALUE self) {
   glColorPointer(4, GL_FLOAT, sizeof(TexturedColoredVertex), (GLvoid*) offsetof(TexturedColoredVertex, color));
   glTexCoordPointer(2, GL_FLOAT, sizeof(TexturedColoredVertex), (GLvoid*) offsetof(TexturedColoredVertex, texture));
 
+
   // Bind to the particles texture
   glBindTexture(GL_TEXTURE_2D, emitter->texture->name);
 
@@ -463,9 +463,12 @@ void particleEmitter_renderParticles(VALUE self) {
 
   // Unbind the current VBO
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  printf("\nRendering %d",emitter->verticesID);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+  printf("\nTexture Name: %d",emitter->texture->name);
+  
+  return Qnil;
 }
 
 void particleEmitter_initParticle(VALUE self,Particle* particle) {

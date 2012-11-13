@@ -263,6 +263,7 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
     }
 
     glGenTextures(1, &texture->name);
+
     glBindTexture(GL_TEXTURE_2D, texture->name);
 
     GLenum aFilter = GL_LINEAR;
@@ -281,7 +282,7 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texture->width, texture->height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
         break;
     }
-    
+
     printf("The content Size is (%f,%f)",texture->contentSize.width,texture->contentSize.height);
     printf("The content Size is (%f,%f)",texture->width,texture->height);
 
@@ -295,7 +296,7 @@ Texture2D* Texture2D_createWithFile(char *textureFileName) {
 
     CGContextRelease(context);
     free(data);
-    
+
     return texture;
 
 }

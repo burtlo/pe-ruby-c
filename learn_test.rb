@@ -132,6 +132,24 @@ class ParticleFile
 
 end
 
+class Learn::ParticleEmitter
+
+  attr_reader :ped
+
+  def initialize(window,particle_file)
+    contents = File.read(particle_file)
+    @ped = ParticleFile.parse(contents, single: true)
+    @ped.window = window
+    @particle_count = 0
+    @emit_counter = 0
+    @elapsed_time = 0
+    @duration = ped.duration
+    @active = false
+  end
+
+  def max_particles ; ped.max_particles ; end
+
+end
 
 class TestWindow < Gosu::Window
   
@@ -155,25 +173,7 @@ class TestWindow < Gosu::Window
 end
 
 window = TestWindow.new(600,600,false)
-
-class Learn::ParticleEmitter
-
-  attr_reader :ped
-
-  def initialize(window,particle_file)
-    contents = File.read(particle_file)
-    @ped = ParticleFile.parse(contents, single: true)
-    @ped.window = window
-    @particle_count = 0
-    @emit_counter = 0
-    @elapsed_time = 0
-    @duration = ped.duration
-    @active = false
-  end
-
-  def max_particles ; ped.max_particles ; end
-
-end
+window.show
 
 # pe = Learn::ParticleEmitter.new(window,"purple.pex")
 # puts "Emitter Ready: #{pe.active?}"
@@ -181,7 +181,7 @@ end
 # puts "Emitter Ready: #{pe.active?}"
 # puts "Source Position: #{pe.source_position}"
 
-window.show
+
 
 puts ("---" * 30)
 puts "Learning Is Great!"
