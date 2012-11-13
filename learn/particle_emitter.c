@@ -3,7 +3,7 @@
 #pragma mark - Protoypes
 
 static VALUE particleEmitter_allocate(VALUE klass);
-static void particleEmitter_mark(ParticleEmitter *emitter);
+// static void particleEmitter_mark(ParticleEmitter *emitter);
 static void particleEmitter_free(ParticleEmitter *emitter);
 
 VALUE particleEmitter_init(VALUE self);
@@ -44,13 +44,13 @@ static VALUE particleEmitter_allocate(VALUE klass) {
     ParticleEmitter *emitter = ALLOC(ParticleEmitter);
     memset(emitter, 0, sizeof(ParticleEmitter));
 
-    return Data_Wrap_Struct(klass, particleEmitter_mark, particleEmitter_free, emitter);
+    return Data_Wrap_Struct(klass, 0, particleEmitter_free, emitter);
 }
 
-static void particleEmitter_mark(ParticleEmitter *emitter) {
-    // if(!NIL_P(texture2D->rb_shader)) rb_gc_mark(texture2D->rb_shader);
-    // rb_gc_mark(texture2D->rb_image);
-}
+// static void particleEmitter_mark(ParticleEmitter *emitter) {
+//     // if(!NIL_P(texture2D->rb_shader)) rb_gc_mark(texture2D->rb_shader);
+//     // rb_gc_mark(texture2D->rb_image);
+// }
 
 // Deallocate data structure and its contents.
 static void particleEmitter_free(ParticleEmitter *emitter) {
