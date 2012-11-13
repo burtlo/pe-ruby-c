@@ -11,7 +11,7 @@ VALUE particleEmitter_active(VALUE self);
 VALUE particleEmitter_get_sourcePosition(VALUE self);
 
 VALUE particleEmitter_optimize(VALUE self);
-VALUE particleEmitter_updateWithDelta(VALUE self);
+VALUE particleEmitter_updateWithDelta(VALUE self,VALUE rbDelta);
 
 #pragma mark - Internal Methods
 
@@ -33,7 +33,7 @@ void Init_ParticleEmitter(VALUE module) {
   rb_define_method(cParticleEmitter, "source_position", particleEmitter_get_sourcePosition, 0);
 
   rb_define_method(cParticleEmitter, "optimize", particleEmitter_optimize, 0);
-  rb_define_method(cParticleEmitter, "update", particleEmitter_updateWithDelta, 0);
+  rb_define_method(cParticleEmitter, "update", particleEmitter_updateWithDelta, 1);
   rb_define_method(cParticleEmitter, "render_particles", particleEmitter_renderParticles, 0);
 
 }
@@ -67,9 +67,6 @@ static void particleEmitter_free(ParticleEmitter *emitter) {
 #pragma mark - Initialization
 
 VALUE particleEmitter_init(VALUE self) {
-  EMITTER();
-  //TODO: this was used to test the initialize which is being overwritten by the ruby implementation
-  emitter->useTexture = Qtrue;
   return self;
 }
 
@@ -233,13 +230,12 @@ void particleEmitter_parseParticleConfig(VALUE self) {
 
 }
 
-
-VALUE particleEmitter_updateWithDelta(VALUE self) {
+VALUE particleEmitter_updateWithDelta(VALUE self,VALUE rbDelta) {
   EMITTER();
 
-  // printf("\nUpdating");
+  float aDelta = (float)NUM2DBL(rbDelta);
 
-  float aDelta = 16.666666f;
+  // printf("\nUpdating");
 
   if(emitter->active && emitter->emissionRate) {
     float rate = 1.0f/emitter->emissionRate;
@@ -266,7 +262,6 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
 
     // Loop through all the particles updating their location and color
   while(particleIndex < emitter->particleCount) {
-
     // Get the particle for the current particle index
     Particle *currentParticle = &emitter->particles[particleIndex];
 
@@ -276,6 +271,7 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
 
     // If the current particle is alive then update it
     if(currentParticle->timeToLive > 0) {
+
       // If maxRadius is greater than 0 then the particles are going to spin otherwise
       // they are effected by speed and gravity
       if (emitter->emitterType == kParticleTypeRadial) {
@@ -338,7 +334,7 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
 
       // As we are rendering the particles as quads, we need to define 6 vertices for each particle
       GLfloat halfSize = currentParticle->particleSize * 0.5f;
-      
+
       // If a rotation has been defined for this particle then apply the rotation to the vertices that define
       // the particle
       if (currentParticle->rotation) {
@@ -398,7 +394,6 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
       // Update the particle and vertex counters
       emitter->particleIndex = particleIndex++;
     } else {
-
       // As the particle is not alive anymore replace it with the last active particle
       // in the array and reduce the count of particles by one.  This causes all active particles
       // to be packed together at the start of the array so that a particle which has run out of
@@ -406,10 +401,10 @@ VALUE particleEmitter_updateWithDelta(VALUE self) {
       if(particleIndex != emitter->particleCount - 1) {
         emitter->particles[particleIndex] = emitter->particles[emitter->particleCount - 1];
       }
-      emitter->particleCount = particleIndex--;
+      emitter->particleIndex = particleIndex--;
     }
   }
-  
+
   return Qnil;
 }
 
@@ -425,7 +420,6 @@ void particleEmitter_addParticle(VALUE self) {
   particleEmitter_initParticle(self,particle);
 
   emitter->particleCount++;
-
 }
 
 VALUE particleEmitter_renderParticles(VALUE self) {
@@ -438,13 +432,13 @@ VALUE particleEmitter_renderParticles(VALUE self) {
   // Using glBufferSubData means that a copy is done from the quads array to the buffer rather than recreating the buffer which
   // would be an allocation and copy. The copy also only takes over the number of live particles. This provides a nice performance
   // boost.
+
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(ParticleQuad) * emitter->particleIndex, emitter->quads);
 
   // Configure the vertex pointer which will use the currently bound VBO for its data
   glVertexPointer(2, GL_FLOAT, sizeof(TexturedColoredVertex), 0);
   glColorPointer(4, GL_FLOAT, sizeof(TexturedColoredVertex), (GLvoid*) offsetof(TexturedColoredVertex, color));
   glTexCoordPointer(2, GL_FLOAT, sizeof(TexturedColoredVertex), (GLvoid*) offsetof(TexturedColoredVertex, texture));
-
 
   // Bind to the particles texture
   glBindTexture(GL_TEXTURE_2D, emitter->texture->name);
@@ -535,6 +529,8 @@ void particleEmitter_initParticle(VALUE self,Particle* particle) {
   particle->deltaColor.green = ((end.green - start.green) / particle->timeToLive)  * (1.0f / MAXIMUM_UPDATE_RATE);
   particle->deltaColor.blue = ((end.blue - start.blue) / particle->timeToLive)  * (1.0f / MAXIMUM_UPDATE_RATE);
   particle->deltaColor.alpha = ((end.alpha - start.alpha) / particle->timeToLive)  * (1.0f / MAXIMUM_UPDATE_RATE);
+
+  // printf("\n(%f,%f,%f)",particle->color.red,particle->color.green,particle->color.blue,particle->color.alpha);
 
   // Calculate the rotation
   GLfloat startA = emitter->rotationStart + emitter->rotationStartVariance * RANDOM_MINUS_1_TO_1();

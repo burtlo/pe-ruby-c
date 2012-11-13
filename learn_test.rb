@@ -163,7 +163,10 @@ class TestWindow < Gosu::Window
   
   
   def update
-    emitter.update
+    @last_update_at ||= Gosu::milliseconds
+    delta = [Gosu::milliseconds - @last_update_at, 100].min * 0.001
+    emitter.update(delta)
+    @last_update_at = Gosu::milliseconds
   end
   
   def draw
