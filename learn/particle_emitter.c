@@ -43,6 +43,8 @@ static VALUE particleEmitter_allocate(VALUE klass) {
 
 // Deallocate data structure and its contents.
 static void particleEmitter_free(ParticleEmitter *emitter) {
+  xfree(emitter->quads);
+  xfree(emitter->particles);
   xfree(emitter);
 }
 
@@ -408,9 +410,6 @@ void particleEmitter_addParticle(VALUE self) {
 VALUE particleEmitter_renderParticles(VALUE self) {
   EMITTER();
 
-  // glEnable(GL_BLEND);
-  // glEnable(GL_TEXTURE_2D);
-
   // Bind to the verticesID VBO and popuate it with the necessary vertex, color and texture informaiton
   glBindBuffer(GL_ARRAY_BUFFER, emitter->verticesID);
 
@@ -531,18 +530,4 @@ void particleEmitter_stopParticleEmitter(VALUE self) {
   emitter->active = Qfalse;
   emitter->elapsedTime = 0.0f;
   emitter->emitCounter = 0.0f;
-}
-
-
-#pragma mark - Getters
-
-VALUE particleEmitter_active(VALUE self) {
-  EMITTER();
-  return emitter->active;
-}
-
-VALUE particleEmitter_get_sourcePosition(VALUE self) {
-  EMITTER();
-
-  return rb_float_new(emitter->sourcePosition.x);
 }
