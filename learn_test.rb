@@ -2,7 +2,6 @@ puts ("---" * 30)
 
 require 'gosu'
 require 'happymapper'
-require 'rmagick'
 require './learn/learn'
 
 class ParticleColor

@@ -1,8 +1,7 @@
 source :rubygems
 
 gem 'gosu'
-gem 'rmagick'
-gem 'happymapper'
+gem 'nokogiri-happymapper'
 
 gem 'guard'
 gem 'guard-shell'
